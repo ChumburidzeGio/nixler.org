@@ -4,15 +4,6 @@ import List, { ListItem, ListItemText } from 'material-ui/List'
 import KeyboardArrowRightIcon from 'material-ui-icons/KeyboardArrowRight'
 import DragHandleIcon from 'material-ui-icons/DragHandle'
 
-const styles = {
-    item: {
-        cursor: 'pointer'
-    },
-    dragHandle: {
-        cursor: 'move'
-    }
-}
-
 const DragHandle = SortableHandle(() => <DragHandleIcon/>)
 
 const SortableItem = SortableElement(({item, onItemClick}) => {

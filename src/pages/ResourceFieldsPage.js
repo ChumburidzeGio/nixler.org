@@ -4,13 +4,11 @@ import Typography from 'material-ui/Typography'
 import { withStyles } from 'material-ui/styles'
 import withRoot from '../withRoot'
 import TextField from 'material-ui/TextField'
-import MenuItem from 'material-ui/Menu/MenuItem'
 import Grid from 'material-ui/Grid'
 import Button from 'material-ui/Button'
 import Send from 'material-ui-icons/Send'
 import Zoom from 'material-ui/transitions/Zoom'
 import AddIcon from 'material-ui-icons/Add'
-import MultiSelect from "../components/MultiSelect"
 import FieldEditModal from './FieldEditModal'
 import Switch from '../components/Switch'
 import client from '../client'
@@ -20,6 +18,7 @@ import { arrayMove } from 'react-sortable-hoc'
 import { showSnack, hideSnack } from '../state/snackbarActions'
 import { connect } from 'react-redux'
 import { browserHistory } from 'react-router'
+import XSelect from '../components/XSelect';
 
 const styles = theme => ({
     root: {
@@ -78,9 +77,7 @@ class ResourceFieldsPage extends React.Component {
 
         client.get('/resources.fieldify/data/' + this.props.params.id).then(({data}) => {
 
-            this.setState(data)
-
-            setTimeout(() => this.setState({fields_focused: false}))
+            this.setState({...data, fields_focused: false})
 
         }).catch((error) => this.snackAndRedirect('Resource not found, redirecting to dashboard'))
     }
@@ -94,11 +91,9 @@ class ResourceFieldsPage extends React.Component {
 
     handleChange = name => event => this.setState({[name]: event.target.value})
 
-    handleChangeBehaviours = event => this.setState({behaviours: event.target.value})
+    handleChangeX = (name, value) => this.setState({[name]: value});
 
     handleChangeSwitch = (name) => this.setState({[name]: !this.state[name]})
-
-    getBehaviours = () => this.state.behaviours
 
     getModalStatus = () => this.state.modalStatus
 
@@ -170,7 +165,7 @@ class ResourceFieldsPage extends React.Component {
         return (
             <App>
 
-                {resource.id ?  <Grid container spacing={24} className={classes.container}>
+                {!resource.fields_focused &&  <Grid container spacing={24} className={classes.container}>
                     <Grid item xs={12} md={6}>
 
                         <Typography type="title">
@@ -212,31 +207,10 @@ class ResourceFieldsPage extends React.Component {
                             onChange={this.handleChange('description')}
                             fullWidth
                         />
-
-                        <TextField
-                            id="act_as"
-                            label="Act as"
-                            InputLabelProps={{focused: resource.fields_focused}}
-                            select
-                            className={classes.textField}
-                            value={resource.act_as}
-                            onChange={this.handleChange('act_as')}
-                            SelectProps={{
-                                MenuProps: {
-                                    className: classes.menu,
-                                },
-                            }}
-                            margin="normal"
-                            fullWidth
-                        >
-                            {resource.act_as__values.map((item) => (
-                                <MenuItem key={item.id} value={item.id}>
-                                    {item.label}
-                                </MenuItem>
-                            ))}
-                        </TextField>
-
-                        <MultiSelect id="behaviours" label="Behaviours" value={this.getBehaviours} options={resource.behaviours__values} handleChange={this.handleChangeBehaviours} />
+                        
+                        <XSelect id="act_as" valueKey="id" label="Act as" placeholder="Select act as values" value={resource.act_as} onChange={this.handleChangeX} options={resource.act_as__values}/>
+                        
+                        <XSelect id="behaviours" valueKey="id" label="Behaviours" multi={true} placeholder="Select behaviours" value={resource.behaviours} onChange={this.handleChangeX} options={resource.behaviours__values}/>
 
                         <Switch id="is_strict" label="Is Strict" checked={resource.is_strict} handleChange={this.handleChangeSwitch} />
 
@@ -277,8 +251,7 @@ class ResourceFieldsPage extends React.Component {
 
                     </Grid>
 
-                </Grid>
-                    : '' }
+                </Grid>}
 
             </App>
         );

@@ -10,7 +10,7 @@ class Switch extends React.Component {
         super(props);
 
         this.state = {
-            checked: this.props.checked !== undefined ? this.props.checked : false,
+            checked: props.checked
         }
     }
 
@@ -22,7 +22,7 @@ class Switch extends React.Component {
     render() {
         return (
             <FormGroup>
-                <FormControlLabel
+                {this.state.checked !== undefined && <FormControlLabel
                     control={
                         <MuiSwitch
                             onChange={this.handleChange}
@@ -30,7 +30,7 @@ class Switch extends React.Component {
                         />
                     }
                     label={this.props.label}
-                />
+                />}
             </FormGroup>
         );
     }

@@ -6,7 +6,6 @@ import withRoot from '../withRoot';
 import AppBar from 'material-ui/AppBar';
 import Toolbar from 'material-ui/Toolbar';
 import TextField from 'material-ui/TextField';
-import MenuItem from 'material-ui/Menu/MenuItem';
 import Button from 'material-ui/Button';
 import Dialog from 'material-ui/Dialog';
 import CloseIcon from 'material-ui-icons/Close';
@@ -15,7 +14,6 @@ import IconButton from 'material-ui/IconButton';
 import Switch from '../components/Switch';
 import Slide from 'material-ui/transitions/Slide';
 import client from '../client';
-import MultiSelect from "../components/MultiSelect";
 import XSelect from '../components/XSelect';
 
 const styles = theme => ({
@@ -33,9 +31,7 @@ const styles = theme => ({
     }
 });
 
-function Transition(props) {
-    return <Slide direction="up" {...props} />;
-}
+const Transition = (props) => <Slide direction="up" {...props} />;
 
 class FieldEditModal extends React.Component {
 
@@ -49,78 +45,51 @@ class FieldEditModal extends React.Component {
             handleClose: props.handleClose,
             handleUpdate: props.handleUpdate,
             fields_focused: true,
-            name_values: [],
-            from: [],
-            from_to_values: [],
         };
     }
 
-    async componentDidMount() {
-        this.getData()
-    }
+    componentDidMount = async () => {
 
-    async getData() {
-
-        const self = this
-
-        let query = client.get(
-            this.state.status() === 'edit' ?
-                ('/fields.fieldify/data/' + self.state.id)
+        client.get(this.state.status() === 'edit' ?
+                ('/fields.fieldify/data/' + this.state.id)
                 : '/field_consts.fieldify/data')
-
-        query.then(data => {
+                
+        .then(data => {
             this.setState({...data.data})
-
-            this.updateFieldsFocus()
+            setTimeout(() => this.setState({fields_focused: false}))
         })
-
     }
 
-    updateFieldsFocus = () => setTimeout(() => this.setState({fields_focused: false}))
-
-    handleChange = name => event => {
-        this.setState({
-            [name]: event.target.value,
-        });
-    }
+    handleChange = name => event => this.setState({[name]: event.target.value})
 
     handleDelete = () => {
-
-        const self = this
-
-        let data = client.delete('/fields.fieldify/data/' + self.state.id)
-
-        if(!data) throw new Error('Failed to delete the field.')
-
-        self.state.handleClose()
+        client.delete('/fields.fieldify/data/' + this.state.id)
+        .then(() => this.state.handleClose())
+        .catch((error) => { throw error })
     }
 
     handleSubmit = () => {
-
-        const self = this
-
-        let data = this.state.status() === 'edit' ?
-            client.put('/fields.fieldify/data/' + self.state.id, this.state) :
+        const response = this.state.status() === 'edit' ?
+            client.put('/fields.fieldify/data/' + this.state.id, this.state) :
             client.post('/fields.fieldify/data/', this.state);
 
-        if(!data) throw new Error('Failed to delete the field.')
-
-        self.state.handleClose()
+        response.then(() => this.state.handleClose())
+        .catch((error) => { throw error })
     }
 
     handleChangeSwitch = (name) => this.setState({[name]: !this.state[name]})
     handleChangeFilters = event => this.setState({filters: event.target.value})
     handleChangeX = (name, value) => this.setState({[name]: value});
 
-    inputChangeBe = (input) => {
+    loadFromToOptions = (input, callback) => {
 
-        if(input.length > 4) return input
+        if (!input) {
+			return Promise.resolve({ options: [] });
+		}
 
-        client.get('/search_fields.fieldify/data?query=' + input).then(({items}) => this.setState({from_to_values: items}))
-    }
-
-    fromToFields = (value) => {
-        return this.state.from_to_values
+        return client.get('/search_fields.fieldify/data?query=' + input).then((json) => {
+			return { options: json.data };
+        })
     }
 
     render() {
@@ -128,8 +97,6 @@ class FieldEditModal extends React.Component {
         const {classes} = this.props;
 
         const self = this.state;
-
-        const resource = self;
 
         return (
             <Dialog
@@ -154,36 +121,34 @@ class FieldEditModal extends React.Component {
                         </IconButton> : ''}
                     </Toolbar>
                 </AppBar>
-                {!this.state.fields_focused ? <div className={classes.dialogContent}>
-                    {/* const fields = {
-                    from: 'int',
-                    to: 'int',
-                    }; */}
+                {!this.state.fields_focused && <div className={classes.dialogContent}>
 
                     <XSelect id="name" label="Name" placeholder="Select field name" value={this.state.name} options={this.state.name_values} onChange={this.handleChangeX}/>
 
-                    <TextField required label="Label" margin="normal" value={resource.label} onChange={this.handleChange('label')} fullWidth/>
+                    <TextField required label="Label" margin="normal" value={self.label} onChange={this.handleChange('label')} fullWidth/>
 
                     <XSelect id="type" label="Type" placeholder="Select field type" value={this.state.type} options={this.state.type_values} onChange={this.handleChangeX}/>
+
+                    <XSelect id="from" name="from" label="From" multi={true} placeholder="Select from fields" async={true} value={this.state.from} onChange={this.handleChangeX} simpleValue={false} loadOptions={this.loadFromToOptions}/>
+                    
+                    <XSelect id="to" name="to" label="To" multi={true} placeholder="Select to fields" async={true} value={this.state.to} onChange={this.handleChangeX} simpleValue={false} loadOptions={this.loadFromToOptions}/>
 
                     <XSelect id="strategy" label="Strategy" placeholder="Select field strategy" value={this.state.strategy} options={this.state.strategy_values} onChange={this.handleChangeX}/>
 
                     <XSelect id="filters" label="Filters" multi={true} placeholder="Select field filters" value={this.state.filters} options={this.state.filter_values} onChange={this.handleChangeX}/>
+                    
+                    <TextField required label="Description" margin="normal" value={self.description} onChange={this.handleChange('description')} fullWidth/>
+                    <TextField required label="Value" margin="normal" value={self.value} onChange={this.handleChange('value')} fullWidth/>
+                    <TextField required label="Input Default" margin="normal" value={self.input_default} onChange={this.handleChange('input_default')} fullWidth/>
 
-                    <XSelect id="from" label="From" placeholder="Select from fields" multi={true} value={this.state.from} options={this.fromToFields} onChange={this.handleChangeX} onInputChange={this.inputChangeBe}/>
+                    <TextField required label="Script" margin="normal" value={self.script} onChange={this.handleChange('script')} fullWidth/>
+                    <TextField required label="Rules" margin="normal" value={self.rules} onChange={this.handleChange('rules')} fullWidth/>
 
-                    <TextField required label="Description" margin="normal" value={resource.description} onChange={this.handleChange('description')} fullWidth/>
-                    <TextField required label="Value" margin="normal" value={resource.value} onChange={this.handleChange('value')} fullWidth/>
-                    <TextField required label="Input Default" margin="normal" value={resource.input_default} onChange={this.handleChange('input_default')} fullWidth/>
+                    <Switch id="is_input" label="Is Input" checked={self.is_input} handleChange={this.handleChangeSwitch} />
+                    <Switch id="is_output" label="Is Output" checked={self.is_output} handleChange={this.handleChangeSwitch} />
+                <Switch id="is_overview" label="Is Overview" checked={self.is_overview} handleChange={this.handleChangeSwitch} />
 
-                    <TextField required label="Script" margin="normal" value={resource.script} onChange={this.handleChange('script')} fullWidth/>
-                    <TextField required label="Rules" margin="normal" value={resource.rules} onChange={this.handleChange('rules')} fullWidth/>
-
-                    <Switch id="is_input" label="Is Input" checked={resource.is_input} handleChange={this.handleChangeSwitch} />
-                    <Switch id="is_output" label="Is Output" checked={resource.is_output} handleChange={this.handleChangeSwitch} />
-                    <Switch id="is_overview" label="Is Overview" checked={resource.is_overview} handleChange={this.handleChangeSwitch} />
-
-                </div> : ''}
+                </div>}
 
             </Dialog>
         );

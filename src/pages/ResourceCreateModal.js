@@ -9,7 +9,6 @@ import TextField from 'material-ui/TextField';
 import Button from 'material-ui/Button';
 import Dialog from 'material-ui/Dialog';
 import CloseIcon from 'material-ui-icons/Close';
-import DeleteIcon from 'material-ui-icons/Delete';
 import IconButton from 'material-ui/IconButton';
 import Switch from '../components/Switch';
 import Slide from 'material-ui/transitions/Slide';
@@ -17,7 +16,6 @@ import client from '../client';
 import XSelect from '../components/XSelect';
 import { loadResources } from '../state/resourceActions'
 import { connect } from 'react-redux'
-
 
 const styles = theme => ({
     appBar: {
@@ -81,18 +79,13 @@ class ResourceCreateModal extends React.Component {
         });
     }
 
-    handleSubmit = () => {
-
-        const self = this
-
-        let data = client.post('/resources.fieldify/data/', this.state).then((data) => {
-            self.state.handleClose()
+    handleSubmit = () => 
+        client.post('/resources.fieldify/data/', this.state).then(() => {
+            this.state.handleClose()
         }).catch((error) => {
             //TODO: Add snack
             throw error
         });
-
-    }
 
     handleChangeIsInput = () => this.setState({is_input: !this.state.is_input})
     handleChangeIsOutput = () => this.setState({is_output: !this.state.is_output})

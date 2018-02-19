@@ -14,23 +14,16 @@ class ImportExportSection extends React.Component {
 
     call = async (action) => {
 
-        let data = null
-
         this.props.showSnack('Running ' + action + '...', 1000000, 'progress')
 
-        try {
-            data = await (await client.get('/' + action + '.resource/data'))
-        }
-
-        catch(error) {
+        client.get('/' + action + '.resource/data').then(() => {
+            this.props.loadResources()
+            this.props.hideSnack('progress')
+            this.props.showSnack('Succesfully ' + action + 'ed', 2000)
+        }).catch((error) => {
+            this.props.showSnack('Failed to ' + action, 2000)
             throw(error)
-        }
-
-        this.props.loadResources()
-
-        this.props.hideSnack('progress')
-
-        this.props.showSnack(!data ? ('Failed to ' + action) : 'Succesfully ' + action + 'ed', 2000)
+        })
     }
 
     render() {

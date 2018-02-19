@@ -47,12 +47,10 @@ class App extends React.Component {
 
                 <AppBar position="static">
                     <Toolbar className={classes.toolbar}>
-                        {this.state.headerText() ?
+                        {this.state.headerText() &&
                             <IconButton color="inherit" aria-label="Go back" onClick={this.handleBackButton}>
                                 <ArrowBackIcon />
-                            </IconButton>
-                            : null
-                        }
+                        </IconButton>}
 
                         <Typography type="title" color="inherit" className={classes.logo} component={Link} to="/" onClick={this.handleBackButton}>
                             {this.state.headerText() ? this.state.headerText() : 'Fieldify' }

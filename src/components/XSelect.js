@@ -14,85 +14,6 @@ import Select from 'react-select';
 import 'react-select/dist/react-select.css';
 import { FormControl } from 'material-ui/Form';
 
-class Option extends React.Component {
-    handleClick = event => {
-        this.props.onSelect(this.props.option, event);
-    };
-
-    render() {
-        const { children, isFocused, isSelected, onFocus } = this.props;
-
-        return (
-            <MenuItem
-                onFocus={onFocus}
-                selected={isFocused}
-                onClick={this.handleClick}
-                component="div"
-                style={{
-                    fontWeight: isSelected ? 500 : 400,
-                }}
-            >
-                {children}
-            </MenuItem>
-        );
-    }
-}
-
-class SelectWrapped extends React.Component {
-
-    render() {
-        const { classes, options, ...other } = this.props;
-
-        return (
-            <Select
-                optionComponent={Option}
-                noResultsText={<Typography>{'No results found'}</Typography>}
-                arrowRenderer={arrowProps => {
-                    return arrowProps.isOpen ? <ArrowDropUpIcon /> : <ArrowDropDownIcon />;
-                }}
-                clearRenderer={() => <ClearIcon />}
-                filterOptions={(options, filter, currentValues) => {
-                    let count = 0;
-
-                    return options.filter(suggestion => {
-                        const keep =
-                            (!filter || suggestion.label.toLowerCase().includes(filter.toLowerCase())) &&
-                            count < 150;
-
-                        if (keep) {
-                            count += 1;
-                        }
-
-                        return keep;
-                    });
-                }}
-                valueComponent={valueProps => {
-                    const { value, children, onRemove } = valueProps;
-
-                    if (onRemove) {
-                        return (
-                            <Chip
-                                tabIndex={-1}
-                                label={children}
-                                className={classes.chip}
-                                onDelete={event => {
-                                    event.preventDefault();
-                                    event.stopPropagation();
-                                    onRemove(value);
-                                }}
-                            />
-                        );
-                    }
-
-                    return <div className="Select-value">{children}</div>;
-                }}
-                options={((typeof options === "function") ? options() : options)}
-                {...other}
-            />
-        );
-    }
-}
-
 const ITEM_HEIGHT = 48;
 
 const styles = theme => ({
@@ -207,18 +128,83 @@ const styles = theme => ({
     },
 });
 
+
+class Option extends React.Component {
+    render() {
+        const { children, isFocused, isSelected, onFocus, option, onSelect } = this.props
+        return (
+            <MenuItem
+                onFocus={onFocus}
+                selected={isFocused}
+                onClick={(event) => onSelect(option, event)}
+                component="div"
+                style={{
+                    fontWeight: isSelected ? 500 : 400,
+                }}
+            >
+                <div style={{width: option.description ? '100%' : 'auto'}}>
+                    {children}
+                </div>
+
+                {option.description && <small style={{float: 'right'}}>
+                    {option.description}
+                </small>}
+            </MenuItem>
+        );
+    }
+}
+
+class SelectWrapped extends React.Component {
+    render() {
+        const { classes, options, async = false, ...other } = this.props
+        const SelectElement = async ? Select.Async : Select
+        return (
+                <SelectElement
+                    removeSelected={true}
+                    optionComponent={Option}
+                    noResultsText={<Typography>{'No results found'}</Typography>}
+                    arrowRenderer={arrowProps => {
+                        return arrowProps.isOpen ? <ArrowDropUpIcon /> : <ArrowDropDownIcon />;
+                    }}
+                    clearRenderer={() => <ClearIcon />}
+                    filterOptions={(options, filter, currentValues) => {
+                        return options.slice(0, 150);
+                    }}
+                    valueComponent={valueProps => {
+                        const { value, children, onRemove } = valueProps;
+
+                        if (onRemove) {
+                            return (
+                                <Chip
+                                    tabIndex={-1}
+                                    label={children}
+                                    className={classes.chip}
+                                    onDelete={event => {
+                                        event.preventDefault();
+                                        event.stopPropagation();
+                                        onRemove(value);
+                                    }}
+                                />
+                            );
+                        }
+
+                        return <div className="Select-value">{children}</div>;
+                    }}
+                    options={((typeof options === "function") ? options() : options)}
+                    {...other}
+                />
+        );
+    }
+}
+
 class XSelect extends React.Component {
 
-    constructor(props) {
+    state = {
+        value: this.props.value,
+    }
 
-        super(props);
-
-        this.state = {
-            options: this.props.options,
-            value: this.props.value,
-            onChange: this.props.onChange,
-            multi: this.props.multi === undefined ? false : true,
-        };
+    static propTypes = {
+        classes: PropTypes.object.isRequired,
     }
 
     onChange = value => {
@@ -227,8 +213,7 @@ class XSelect extends React.Component {
     }
 
     render() {
-        const { classes, label, placeholder, id, name, onInputChange } = this.props;
-        let { multi, options, value } = this.state;
+        const { classes, label, name, id, onChange, simpleValue = true, multi = false, ...others } = this.props;
 
         return (
             <FormControl fullWidth className={classes.root}>
@@ -243,25 +228,18 @@ class XSelect extends React.Component {
                     inputComponent={SelectWrapped}
                     inputProps={{
                         classes,
-                        value: value,
+                        value: this.state.value,
                         multi: multi,
                         closeOnSelect: !multi,
-                        placeholder: placeholder,
-                        instanceId: id,
-                        id: id,
+                        simpleValue: simpleValue,
                         name: name || id,
-                        simpleValue: true,
-                        options: options,
-                        onInputChange: onInputChange,
+                        id: id,
+                        ...others
                     }}
                 />
             </FormControl>
         );
     }
 }
-
-XSelect.propTypes = {
-    classes: PropTypes.object.isRequired,
-};
 
 export default withStyles(styles)(XSelect);

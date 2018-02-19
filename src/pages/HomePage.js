@@ -7,7 +7,6 @@ import App from '../layouts/App'
 import { connect } from 'react-redux'
 import { loadResources, selectProductType } from '../state/resourceActions'
 import Button from 'material-ui/Button'
-import Send from 'material-ui-icons/Send'
 import Zoom from 'material-ui/transitions/Zoom'
 import { withStyles } from 'material-ui/styles'
 import ResourceCreateModal from './ResourceCreateModal'
@@ -64,9 +63,7 @@ class HomePage extends React.Component {
         <App headerText={this.getHeaderText} backButton={this.unsetActiveItem}>
 
                 {resources.selected ?
-
                         <div>
-
                             <List>
                                 {resources.selected.resources.map((item) =>
                                     <ListItem button key={item.id} component={Link} to={'/resource/' + item.id}>
@@ -103,7 +100,6 @@ class HomePage extends React.Component {
                             </ListItem>
                         )}
                     </List>
-
                 }
 
             </App>
