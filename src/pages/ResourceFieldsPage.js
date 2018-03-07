@@ -125,6 +125,12 @@ class ResourceFieldsPage extends React.Component {
         }).catch((error) => this.props.showSnack('Something went wrong, pls try later :)'))
     }
 
+    handlePatch = () => {
+        client.patch('/' + this.state.name).then((data) => {
+            this.props.showSnack('Resource succesfully patched')
+        }).catch((error) => this.props.showSnack('Something went wrong, pls try later :)'))
+    }
+
     snackAndRedirect(snack, path = '/') {
         setTimeout(() => browserHistory.push(path), 500)
         this.props.showSnack(snack)
@@ -217,6 +223,10 @@ class ResourceFieldsPage extends React.Component {
                         <Button raised color="primary" onClick={this.handleSubmit}>
                             Save
                             <Send className={classes.rightIcon}/>
+                        </Button>
+
+                        <Button className={classes.deleteButton} onClick={this.handlePatch}>
+                            Patch
                         </Button>
 
                         <Button className={classes.deleteButton} onClick={this.handleDelete}>

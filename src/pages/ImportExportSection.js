@@ -16,7 +16,7 @@ class ImportExportSection extends React.Component {
 
         this.props.showSnack('Running ' + action + '...', 1000000, 'progress')
 
-        client.get('/' + action + '.resource/data').then(() => {
+        client.get('/' + action + '.fieldify/data').then(() => {
             this.props.loadResources()
             this.props.hideSnack('progress')
             this.props.showSnack('Succesfully ' + action + 'ed', 2000)

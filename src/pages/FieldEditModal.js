@@ -45,6 +45,9 @@ class FieldEditModal extends React.Component {
             handleClose: props.handleClose,
             handleUpdate: props.handleUpdate,
             fields_focused: true,
+            is_input: false,
+            is_output: false,
+            is_overview: false,
         };
     }
 

@@ -168,7 +168,23 @@ class SelectWrapped extends React.Component {
                     }}
                     clearRenderer={() => <ClearIcon />}
                     filterOptions={(options, filter, currentValues) => {
-                        return options.slice(0, 150);
+                        let count = 0;
+
+                        if(async) {
+                            return options.slice(0, 150);
+                        }
+
+                        return options.filter(suggestion => {
+                            const keep =
+                                (!filter || suggestion.label.toLowerCase().includes(filter.toLowerCase())) &&
+                                count < 150;
+
+                            if (keep) {
+                                count += 1;
+                            }
+
+                            return keep;
+                        });
                     }}
                     valueComponent={valueProps => {
                         const { value, children, onRemove } = valueProps;
